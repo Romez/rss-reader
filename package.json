@@ -7,6 +7,11 @@
     "bootstrap": "^4.3.1",
     "css-loader": "^3.2.0"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "make lint"
+    }
+  },
   "devDependencies": {
     "@babel/core": "^7.7.4",
     "@babel/preset-env": "^7.7.4",
@@ -17,6 +22,7 @@
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
     "html-webpack-plugin": "^3.2.0",
+    "husky": "^3.1.0",
     "node-sass": "^4.13.0",
     "sass-loader": "^8.0.0",
     "style-loader": "^1.0.0",
