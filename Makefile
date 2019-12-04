@@ -1,7 +1,7 @@
 install:
 	npm ci
 
-dev:
+run:
 	npx webpack-dev-server
 
 lint:
@@ -9,5 +9,8 @@ lint:
 
 build:
 	npx webpack
+
+test:
+	npm test
 
 deploy: build

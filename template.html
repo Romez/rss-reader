@@ -2,21 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>RSS laoder</title>
 </head>
 <body>
   <main class="container-fluid">
     <div class="jumbotron">
-      <form>
+      <form id="rss-form">
+
         <div class="input-group">
-          <input type="text" class="form-control" placeholder="RSS stream">
+          <input type="text" class="form-control" name="rss" placeholder="RSS stream" autofocus>
           <div class="input-group-append">
-            <button class="btn btn-dark">ADD</button>
+            <button type="submit" class="rss-submit btn btn-outline-secondary btn-sm" disabled>ADD</button>
           </div>
+          <div class="rss-error invalid-feedback"></div>
         </div>
       </form>
     </div>
+
+    <div class="row">
+    <div class="col-sm">
+      <div class="feeds"></div>
+    </div>
+    <div class="col-sm">
+      <div class="news list-group"></div>
+    </div>
+  </div>
   </main>
 </div>
 </body>
