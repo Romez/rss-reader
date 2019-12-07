@@ -1,15 +1,16 @@
-import { validateRss, initialState } from '../src/app';
+import { initialState } from '../src/app';
+import validateRss from '../src/validateRss';
 
 test('should return empty status', () => {
-  expect(validateRss('')).toEqual({ status: 'empty', message: '' });
+  expect(validateRss('', initialState)).toEqual({ status: 'empty', message: '' });
 });
 
 test('should return invalid, wrong url', () => {
-  expect(validateRss('http://example')).toEqual({ status: 'invalid', message: 'Wrong url' });
+  expect(validateRss('http://example', initialState)).toEqual({ status: 'invalid', message: 'Address is not valid' });
 });
 
 test('should return valid status', () => {
-  expect(validateRss('http://rss.com/feed')).toEqual({ status: 'valid', message: '' });
+  expect(validateRss('http://rss.com/feed', initialState)).toEqual({ status: 'valid', message: '' });
 });
 
 test('should return invalid, already has url', () => {
