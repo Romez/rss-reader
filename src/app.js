@@ -1,6 +1,6 @@
 import { watch } from 'melanke-watchjs';
 import { get } from 'axios';
-import { keyBy } from 'lodash';
+import { find } from 'lodash';
 
 import { parseRss, validateRss, mergePosts } from './utils';
 
@@ -15,7 +15,7 @@ export const initialState = {
   },
   description: '',
   feeds: {},
-  posts: {},
+  posts: [],
 };
 
 const app = () => {
@@ -25,7 +25,7 @@ const app = () => {
     setTimeout(() => {
       get(target).then(({ data }) => {
         const { posts } = parseRss(data);
-        state.posts = keyBy(mergePosts(Object.values(state.posts), posts), 'id');
+        state.posts = mergePosts(Object.values(state.posts), posts);
         checkFeedUpdates(target);
       });
     }, 2000);
@@ -55,7 +55,7 @@ const app = () => {
       const { title, description, posts } = parseRss(data);
 
       state.feeds = { ...state.feeds, [url]: { title, description } };
-      state.posts = keyBy(posts, 'id');
+      state.posts = posts;
 
       state.submit.status = 'success';
       state.validation.status = 'empty';
@@ -69,7 +69,7 @@ const app = () => {
 
   postsNode.addEventListener('click', ({ target }) => {
     if (target.classList.contains('btn-info')) {
-      const { description } = state.posts[target.dataset.id];
+      const { description } = find(state.posts, ['id', target.dataset.id]);
       state.description = description;
     }
   });
@@ -83,7 +83,7 @@ const app = () => {
       feedbackNode.className = ['feedback', `${state.validation.status}-feedback`].join(' ');
     }
 
-    submitButtonNode.disabled = !formNode.checkValidity();
+    submitButtonNode.disabled = state.validation.status !== 'valid';
   });
 
   watch(state.submit, 'status', () => {
@@ -124,7 +124,7 @@ const app = () => {
   });
 
   watch(state, 'posts', () => {
-    const elements = Object.values(state.posts).map(({ title, link, id }) => {
+    const elements = state.posts.map(({ title, link, id }) => {
       const titleElement = `<a href=${link}>${title}</a>`;
       const infoElement = `<button data-id=${id} data-toggle="modal" data-target=".info-modal" type="button" class="btn btn-info">Info</button>`;
 

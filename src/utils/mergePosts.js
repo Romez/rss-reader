@@ -5,7 +5,7 @@ const mergePosts = (oldPosts, newPosts) => {
 
   const result = newPosts.filter(({ date }) => date > postLatestDate);
 
-  return [...oldPosts, ...result];
+  return [...result, ...oldPosts];
 };
 
 export default mergePosts;
