@@ -1,3 +1,5 @@
+import { uniqueId } from 'lodash';
+
 const parseRss = (data) => {
   const domparser = new DOMParser();
   const doc = domparser.parseFromString(data, 'text/xml');
@@ -15,6 +17,7 @@ const parseRss = (data) => {
       const dateEl = item.querySelector('pubDate');
 
       return {
+        id: uniqueId(),
         title: titleEl.textContent,
         link: linkEl.textContent,
         description: descriptionEl.textContent,

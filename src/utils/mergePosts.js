@@ -1,12 +1,11 @@
-import { maxBy, uniqueId, keyBy } from 'lodash';
+import { max } from 'lodash';
 
-const mergePosts = (newPosts, oldPosts) => {
-  const latestPost = maxBy(oldPosts, ({ date }) => date);
+const mergePosts = (oldPosts, newPosts) => {
+  const postLatestDate = max(oldPosts.map(({ date }) => date));
 
-  const posts = newPosts
-    .filter(({ date }) => date > latestPost.date)
-    .map((post) => ({ ...post, id: uniqueId() }));
-  return { ...oldPosts, ...keyBy(posts, 'id') };
+  const result = newPosts.filter(({ date }) => date > postLatestDate);
+
+  return [...oldPosts, ...result];
 };
 
 export default mergePosts;

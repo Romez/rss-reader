@@ -1,13 +1,8 @@
 import { watch } from 'melanke-watchjs';
 import { get } from 'axios';
-import { uniqueId, keyBy } from 'lodash';
+import { keyBy } from 'lodash';
 
 import { parseRss, validateRss, mergePosts } from './utils';
-
-const getRss = (url) => {
-  const target = ['https://cors-anywhere.herokuapp.com', url].join('/');
-  return get(target).then(({ data }) => parseRss(data));
-};
 
 export const initialState = {
   validation: {
@@ -26,11 +21,12 @@ export const initialState = {
 const app = () => {
   const state = { ...initialState };
 
-  const checkFeedUpdates = (url) => {
+  const checkFeedUpdates = (target) => {
     setTimeout(() => {
-      getRss(url).then(({ posts }) => {
-        state.posts = mergePosts(posts, Object.values(state.posts));
-        checkFeedUpdates(url);
+      get(target).then(({ data }) => {
+        const { posts } = parseRss(data);
+        state.posts = keyBy(mergePosts(Object.values(state.posts), posts), 'id');
+        checkFeedUpdates(target);
       });
     }, 2000);
   };
@@ -53,15 +49,18 @@ const app = () => {
     state.submit.status = 'loading';
 
     const url = event.target.rss.value;
+    const target = ['https://cors-anywhere.herokuapp.com', url].join('/');
 
-    getRss(url).then(({ title, description, posts }) => {
+    get(target).then(({ data }) => {
+      const { title, description, posts } = parseRss(data);
+
+      state.feeds = { ...state.feeds, [url]: { title, description } };
+      state.posts = keyBy(posts, 'id');
+
       state.submit.status = 'success';
       state.validation.status = 'empty';
 
-      state.feeds = { ...state.feeds, [url]: { title, description } };
-      state.posts = keyBy(posts.map((post) => ({ ...post, id: uniqueId() })), 'id');
-
-      checkFeedUpdates(url);
+      checkFeedUpdates(target);
     }).catch((err) => {
       state.submit.status = 'failure';
       state.submit.message = err;
