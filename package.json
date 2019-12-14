@@ -15,7 +15,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "make lint"
+      "pre-commit": "make lint && make test"
     }
   },
   "devDependencies": {
