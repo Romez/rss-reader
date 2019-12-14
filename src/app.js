@@ -1,8 +1,13 @@
 import { watch } from 'melanke-watchjs';
 import { get } from 'axios';
+import { uniqueId, keyBy } from 'lodash';
 
-import parseRss from './parseRss';
-import validateRss from './validateRss';
+import { parseRss, validateRss, mergePosts } from './utils';
+
+const getRss = (url) => {
+  const target = ['https://cors-anywhere.herokuapp.com', url].join('/');
+  return get(target).then(({ data }) => parseRss(data));
+};
 
 export const initialState = {
   validation: {
@@ -15,83 +20,96 @@ export const initialState = {
   },
   description: '',
   feeds: {},
-  posts: [],
+  posts: {},
 };
 
 const app = () => {
   const state = { ...initialState };
 
-  const inputEl = document.querySelector('[name=rss]');
-  const errorEl = document.querySelector('.rss-error');
-  const submitEl = document.querySelector('.rss-submit');
-  const formEl = document.querySelector('.rss-form');
-  const feedsEl = document.querySelector('.feeds');
-  const postsEl = document.querySelector('.posts');
-  const modalEl = document.querySelector('.info-modal');
-  const alertsEl = document.querySelector('.alerts');
+  const checkFeedUpdates = (url) => {
+    setTimeout(() => {
+      getRss(url).then(({ posts }) => {
+        state.posts = mergePosts(posts, Object.values(state.posts));
+        checkFeedUpdates(url);
+      });
+    }, 2000);
+  };
 
-  inputEl.addEventListener('input', ({ target }) => {
+  const formNode = document.querySelector('.rss-form');
+  const inputNode = formNode.rss;
+  const submitButtonNode = document.querySelector('.rss-submit');
+  const feedbackNode = formNode.querySelector('.feedback');
+  const postsNode = document.querySelector('.posts');
+  const feedsNode = document.querySelector('.feeds');
+  const descriptionNode = document.querySelector('.info-modal');
+  const alertsNode = document.querySelector('.alerts');
+
+  inputNode.addEventListener('input', ({ target }) => {
     state.validation = validateRss(target.value, state);
   });
 
-  watch(state, 'validation', () => {
-    inputEl.classList = ['form-control', `is-${state.validation.status}`].join(' ');
-
-    errorEl.innerText = state.validation.message;
-
-    submitEl.disabled = state.validation.status !== 'valid';
-  });
-
-  formEl.addEventListener('submit', (event) => {
+  formNode.addEventListener('submit', (event) => {
     event.preventDefault();
-    const url = event.target.rss.value;
-
     state.submit.status = 'loading';
 
-    const target = ['https://cors-anywhere.herokuapp.com', url].join('/');
-    get(target).then(({ data }) => {
+    const url = event.target.rss.value;
+
+    getRss(url).then(({ title, description, posts }) => {
       state.submit.status = 'success';
       state.validation.status = 'empty';
 
-      const { title, description, posts } = parseRss(data);
-      const feed = { title, description };
+      state.feeds = { ...state.feeds, [url]: { title, description } };
+      state.posts = keyBy(posts.map((post) => ({ ...post, id: uniqueId() })), 'id');
 
-      state.feeds = { ...state.feeds, [url]: feed };
-
-      state.posts = posts;
+      checkFeedUpdates(url);
     }).catch((err) => {
       state.submit.status = 'failure';
       state.submit.message = err;
     });
   });
 
+  postsNode.addEventListener('click', ({ target }) => {
+    if (target.classList.contains('btn-info')) {
+      const { description } = state.posts[target.dataset.id];
+      state.description = description;
+    }
+  });
+
+  watch(state, 'validation', () => {
+    if (state.validation.status === 'empty') {
+      inputNode.className = 'form-control';
+    } else {
+      inputNode.className = ['form-control', `is-${state.validation.status}`].join(' ');
+      feedbackNode.innerText = state.validation.message;
+      feedbackNode.className = ['feedback', `${state.validation.status}-feedback`].join(' ');
+    }
+
+    submitButtonNode.disabled = !formNode.checkValidity();
+  });
+
   watch(state.submit, 'status', () => {
     switch (state.submit.status) {
       case 'loading': {
-        submitEl.innerHTML = '<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>...Loading';
-        inputEl.disabled = true;
+        submitButtonNode.disabled = true;
+        inputNode.disabled = true;
+        submitButtonNode.innerHTML = '<span class="spinner-grow spinner-grow-sm"></span>...Loading';
         break;
       }
       case 'success': {
-        submitEl.innerText = 'ADD';
-        inputEl.disabled = false;
-        inputEl.value = '';
-        inputEl.focus();
+        submitButtonNode.disabled = false;
+        submitButtonNode.innerText = 'ADD';
+        inputNode.disabled = false;
+        inputNode.value = '';
         break;
       }
       case 'failure': {
-        inputEl.disabled = false;
-        submitEl.innerText = 'ADD';
-        inputEl.focus();
+        submitButtonNode.disabled = false;
+        submitButtonNode.innerText = 'ADD';
+        inputNode.disabled = false;
+        inputNode.focus();
 
-        const alert = [
-          '<div class="alert alert-danger alert-dismissible fade show fixed-top" role="alert">',
-          state.submit.message,
-          '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span> </button>',
-          '</div>',
-        ].join('');
-
-        alertsEl.innerHTML = alert;
+        const close = '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>';
+        alertsNode.innerHTML = `<div class="alert alert-danger alert-dismissible fixed-top" role="alert">${state.submit.message}${close}</div>`;
         break;
       }
       default:
@@ -99,33 +117,25 @@ const app = () => {
   });
 
   watch(state, 'feeds', () => {
-    const feeds = Object.values(state.feeds).map(({ title, description }) => {
+    const elements = Object.values(state.feeds).map(({ title, description }) => {
       const body = `<h6>${title}</h6>${description}`;
       return `<div class='list-group-item'>${body}</div>`;
     });
-    feedsEl.innerHTML = feeds.join('');
+    feedsNode.innerHTML = elements.join('');
   });
 
   watch(state, 'posts', () => {
-    const posts = state.posts.map(({ title, link, description }) => {
-      const body = `<a href=${link}>${title}</a><button data-toggle="modal" data-target=".info-modal" type="button" class="btn btn-outline-info">Info</button>`;
+    const elements = Object.values(state.posts).map(({ title, link, id }) => {
+      const titleElement = `<a href=${link}>${title}</a>`;
+      const infoElement = `<button data-id=${id} data-toggle="modal" data-target=".info-modal" type="button" class="btn btn-info">Info</button>`;
 
-      const button = document.createElement('div');
-      button.classList = ['rss-info', 'list-group-item', 'd-flex justify-content-between'].join(' ');
-      button.innerHTML = body;
-      button.addEventListener('click', () => {
-        state.description = description;
-      });
-
-      return button;
+      return `<div class='rss-info list-group-item d-flex align-items-center justify-content-between'>${titleElement}${infoElement}</div>`;
     });
-    posts.forEach((post) => {
-      postsEl.append(post);
-    });
+    postsNode.innerHTML = elements.join('');
   });
 
   watch(state, 'description', () => {
-    modalEl.querySelector('.modal-body').innerText = state.description;
+    descriptionNode.querySelector('.modal-body').innerText = state.description;
   });
 };
 

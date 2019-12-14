@@ -10,16 +10,15 @@
 
   <main class="container-fluid">
     <div class="jumbotron">
-      <form class="rss-form">
-
+      <form class="rss-form" novalidate>
         <div class="input-group">
-          <input type="text" class="form-control" name="rss" placeholder="RSS stream" autofocus>
+          <input type="url" class="form-control" name="rss" placeholder="RSS stream" autofocus required>
           <div class="input-group-append">
-            <button type="submit" class="rss-submit btn btn-outline-secondary btn-sm" disabled>
+            <button type="submit" class="rss-submit btn btn-primary" disabled>
               ADD
             </button>
           </div>
-          <div class="rss-error invalid-feedback"></div>
+          <div class="feedback"></div>
         </div>
       </form>
     </div>

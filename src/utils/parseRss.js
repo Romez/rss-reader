@@ -12,11 +12,13 @@ const parseRss = (data) => {
       const titleEl = item.querySelector('title');
       const linkEl = item.querySelector('link');
       const descriptionEl = item.querySelector('description');
+      const dateEl = item.querySelector('pubDate');
 
       return {
         title: titleEl.textContent,
         link: linkEl.textContent,
         description: descriptionEl.textContent,
+        date: new Date(dateEl.textContent),
       };
     }),
   };

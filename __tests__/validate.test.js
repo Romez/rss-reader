@@ -1,5 +1,5 @@
 import { initialState } from '../src/app';
-import validateRss from '../src/validateRss';
+import { validateRss } from '../src/utils';
 
 test('should return empty status', () => {
   expect(validateRss('', initialState)).toEqual({ status: 'empty', message: '' });
