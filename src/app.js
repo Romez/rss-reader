@@ -1,10 +1,11 @@
 import { watch } from 'melanke-watchjs';
 import { get } from 'axios';
-import { find } from 'lodash';
+import { find, uniqueId, differenceBy } from 'lodash';
+import $ from 'jquery';
 
-import { parseRss, validateRss, mergePosts } from './utils';
+import { parseRss, validateRss } from './utils';
 
-export const initialState = {
+export const getInitialState = () => ({
   validation: {
     status: 'empty',
     message: '',
@@ -16,19 +17,23 @@ export const initialState = {
   description: '',
   feeds: {},
   posts: [],
-};
+});
 
 const app = () => {
-  const state = { ...initialState };
+  const state = getInitialState();
 
   const checkFeedUpdates = (target) => {
     setTimeout(() => {
       get(target).then(({ data }) => {
         const { posts } = parseRss(data);
-        state.posts = mergePosts(Object.values(state.posts), posts);
+
+        const diffPosts = differenceBy(posts, state.posts, 'date')
+          .map((post) => ({ ...post, id: uniqueId() }));
+
+        state.posts = diffPosts.concat(state.posts);
         checkFeedUpdates(target);
       });
-    }, 2000);
+    }, 3000);
   };
 
   const formNode = document.querySelector('.rss-form');
@@ -55,7 +60,7 @@ const app = () => {
       const { title, description, posts } = parseRss(data);
 
       state.feeds = { ...state.feeds, [url]: { title, description } };
-      state.posts = posts;
+      state.posts = state.posts.concat(posts.map((post) => ({ ...post, id: uniqueId() })));
 
       state.submit.status = 'success';
       state.validation.status = 'empty';
@@ -67,11 +72,9 @@ const app = () => {
     });
   });
 
-  postsNode.addEventListener('click', ({ target }) => {
-    if (target.classList.contains('btn-info')) {
-      const { description } = find(state.posts, ['id', target.dataset.id]);
-      state.description = description;
-    }
+  $('.info-modal').on('show.bs.modal', ({ relatedTarget }) => {
+    const { description } = find(state.posts, ['id', relatedTarget.dataset.id]);
+    state.description = description;
   });
 
   watch(state, 'validation', () => {
@@ -107,7 +110,7 @@ const app = () => {
         inputNode.disabled = false;
         inputNode.focus();
 
-        const close = '<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>';
+        const close = '<button class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>';
         alertsNode.innerHTML = `<div class="alert alert-danger alert-dismissible fixed-top" role="alert">${state.submit.message}${close}</div>`;
         break;
       }
@@ -126,7 +129,7 @@ const app = () => {
   watch(state, 'posts', () => {
     const elements = state.posts.map(({ title, link, id }) => {
       const titleElement = `<a href=${link}>${title}</a>`;
-      const infoElement = `<button data-id=${id} data-toggle="modal" data-target=".info-modal" type="button" class="btn btn-info">Info</button>`;
+      const infoElement = `<button data-id=${id} data-toggle="modal" data-target=".info-modal" class="btn btn-info">Info</button>`;
 
       return `<div class='rss-info list-group-item d-flex align-items-center justify-content-between'>${titleElement}${infoElement}</div>`;
     });

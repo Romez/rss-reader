@@ -11,18 +11,16 @@ test('shoud parse rss', async () => {
     description: 'Feed description',
     posts: [
       {
-        id: '1',
         title: 'Title 2',
         link: 'http://example.com/2',
         description: 'Description 2',
-        date: new Date('Sat, 30 Nov 2019 12:48:00 GMT'),
+        date: 'Sat, 30 Nov 2019 12:48:00 GMT',
       },
       {
-        id: '2',
         title: 'Title 1',
         link: 'http://example.com/1',
         description: 'Description 1',
-        date: new Date('Sat, 30 Nov 2019 12:47:00 GMT'),
+        date: 'Sat, 30 Nov 2019 12:47:00 GMT',
       },
     ],
   };

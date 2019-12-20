@@ -1,19 +1,25 @@
-import { initialState } from '../src/app';
+import { getInitialState } from '../src/app';
 import { validateRss } from '../src/utils';
 
+let state;
+
+beforeEach(() => {
+  state = getInitialState();
+});
+
 test('should return empty status', () => {
-  expect(validateRss('', initialState)).toEqual({ status: 'empty', message: '' });
+  expect(validateRss('', state)).toEqual({ status: 'empty', message: '' });
 });
 
 test('should return invalid, wrong url', () => {
-  expect(validateRss('http://example', initialState)).toEqual({ status: 'invalid', message: 'Address is not valid' });
+  expect(validateRss('http://example', state)).toEqual({ status: 'invalid', message: 'Address is not valid' });
 });
 
 test('should return valid status', () => {
-  expect(validateRss('http://rss.com/feed', initialState)).toEqual({ status: 'valid', message: '' });
+  expect(validateRss('http://rss.com/feed', state)).toEqual({ status: 'valid', message: '' });
 });
 
 test('should return invalid, already has url', () => {
-  const state = { ...initialState, feeds: { 'http://rss.com': { title: 'title', description: 'description' } } };
+  state.feeds = { 'http://rss.com': { title: 'title', description: 'description' } };
   expect(validateRss('http://rss.com', state)).toEqual({ status: 'invalid', message: 'http://rss.com already exists' });
 });
