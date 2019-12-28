@@ -140,7 +140,7 @@ const app = async () => {
   watch(state, 'posts', () => {
     const elements = state.posts.map(({ title, link, id }) => {
       const titleElement = `<a href=${link}>${title}</a>`;
-      const infoElement = `<button data-id=${id} data-toggle="modal" data-target=".info-modal" class="btn btn-info">Info</button>`;
+      const infoElement = `<button data-id=${id} data-toggle="modal" data-target=".info-modal" class="btn btn-info">${t('info')}</button>`;
 
       return `<div class='rss-info list-group-item d-flex align-items-center justify-content-between'>${titleElement}${infoElement}</div>`;
     });
