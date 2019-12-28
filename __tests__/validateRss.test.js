@@ -8,18 +8,22 @@ beforeEach(() => {
 });
 
 test('should return empty status', () => {
-  expect(validateRss('', state)).toEqual({ status: 'empty', message: '' });
+  const status = validateRss('', state);
+  expect(status).toBe('empty');
 });
 
 test('should return invalid, wrong url', () => {
-  expect(validateRss('http://example', state)).toEqual({ status: 'invalid', message: 'Address is not valid' });
+  const status = validateRss('http://example', state);
+  expect(status).toBe('invalid');
 });
 
 test('should return valid status', () => {
-  expect(validateRss('http://rss.com/feed', state)).toEqual({ status: 'valid', message: '' });
+  const status = validateRss('http://rss.com/feed', state);
+  expect(status).toBe('valid');
 });
 
 test('should return invalid, already has url', () => {
   state.feeds = { 'http://rss.com': { title: 'title', description: 'description' } };
-  expect(validateRss('http://rss.com', state)).toEqual({ status: 'invalid', message: 'http://rss.com already exists' });
+  const status = validateRss('http://rss.com', state);
+  expect(status).toBe('exists');
 });

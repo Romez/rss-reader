@@ -4,23 +4,20 @@ import { find, uniqueId, differenceBy } from 'lodash';
 import $ from 'jquery';
 
 import { parseRss, validateRss } from './utils';
+import setupLocalization from './setupLocalization';
 
 export const getInitialState = () => ({
-  validation: {
-    status: 'empty',
-    message: '',
-  },
-  submit: {
-    status: 'idle',
-    message: '',
-  },
-  description: '',
+  validationStatus: 'empty',
+  submitStatus: 'idle',
   feeds: {},
   posts: [],
+  submitMessage: '',
+  description: '',
 });
 
-const app = () => {
+const app = async () => {
   const state = getInitialState();
+  const t = await setupLocalization();
 
   const checkFeedUpdates = (target) => {
     setTimeout(() => {
@@ -46,12 +43,12 @@ const app = () => {
   const alertsNode = document.querySelector('.alerts');
 
   inputNode.addEventListener('input', ({ target }) => {
-    state.validation = validateRss(target.value, state);
+    state.validationStatus = validateRss(target.value, state);
   });
 
   formNode.addEventListener('submit', (event) => {
     event.preventDefault();
-    state.submit.status = 'loading';
+    state.submitStatus = 'loading';
 
     const url = event.target.rss.value;
     const target = ['https://cors-anywhere.herokuapp.com', url].join('/');
@@ -62,13 +59,13 @@ const app = () => {
       state.feeds = { ...state.feeds, [url]: { title, description } };
       state.posts = state.posts.concat(posts.map((post) => ({ ...post, id: uniqueId() })));
 
-      state.submit.status = 'success';
-      state.validation.status = 'empty';
+      state.submitStatus = 'idle';
+      state.validationStatus = 'empty';
 
       checkFeedUpdates(target);
     }).catch((err) => {
-      state.submit.status = 'failure';
-      state.submit.message = err;
+      state.submitStatus = 'failure';
+      state.submitMessage = err;
     });
   });
 
@@ -77,41 +74,55 @@ const app = () => {
     state.description = description;
   });
 
-  watch(state, 'validation', () => {
-    if (state.validation.status === 'empty') {
-      inputNode.className = 'form-control';
-    } else {
-      inputNode.className = ['form-control', `is-${state.validation.status}`].join(' ');
-      feedbackNode.innerText = state.validation.message;
-      feedbackNode.className = ['feedback', `${state.validation.status}-feedback`].join(' ');
+  watch(state, 'validationStatus', () => {
+    switch (state.validationStatus) {
+      case 'invalid': {
+        inputNode.className = ['form-control', 'is-invalid'].join(' ');
+        feedbackNode.innerText = t(`validationMessage.${state.validationStatus}`);
+        submitButtonNode.disabled = true;
+        break;
+      }
+      case 'valid': {
+        inputNode.className = ['form-control', 'is-valid'].join(' ');
+        submitButtonNode.disabled = false;
+        break;
+      }
+      case 'exists': {
+        inputNode.className = ['form-control', 'is-invalid'].join(' ');
+        feedbackNode.innerText = t(`validationMessage.${state.validationStatus}`);
+        submitButtonNode.disabled = true;
+        break;
+      }
+      default: {
+        inputNode.className = 'form-control';
+        submitButtonNode.disabled = true;
+      }
     }
-
-    submitButtonNode.disabled = state.validation.status !== 'valid';
   });
 
-  watch(state.submit, 'status', () => {
-    switch (state.submit.status) {
+  watch(state, 'submitStatus', () => {
+    switch (state.submitStatus) {
       case 'loading': {
         submitButtonNode.disabled = true;
         inputNode.disabled = true;
-        submitButtonNode.innerHTML = '<span class="spinner-grow spinner-grow-sm"></span>...Loading';
+        submitButtonNode.innerHTML = `<span class="spinner-grow spinner-grow-sm"></span>${t('submitButton.loading')}`;
         break;
       }
-      case 'success': {
+      case 'idle': {
         submitButtonNode.disabled = false;
-        submitButtonNode.innerText = 'ADD';
+        submitButtonNode.innerText = t('submitButton.add');
         inputNode.disabled = false;
         inputNode.value = '';
         break;
       }
       case 'failure': {
         submitButtonNode.disabled = false;
-        submitButtonNode.innerText = 'ADD';
+        submitButtonNode.innerText = t('submitButton.add');
         inputNode.disabled = false;
         inputNode.focus();
 
         const close = '<button class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>';
-        alertsNode.innerHTML = `<div class="alert alert-danger alert-dismissible fixed-top" role="alert">${state.submit.message}${close}</div>`;
+        alertsNode.innerHTML = `<div class="alert alert-danger alert-dismissible fixed-top" role="alert">${state.submitMessage}${close}</div>`;
         break;
       }
       default:
