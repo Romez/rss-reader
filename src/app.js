@@ -77,24 +77,25 @@ const app = async () => {
   watch(state, 'validationStatus', () => {
     switch (state.validationStatus) {
       case 'invalid': {
-        inputNode.className = ['form-control', 'is-invalid'].join(' ');
+        inputNode.classList.add('is-invalid');
         feedbackNode.innerText = t(`validationMessage.${state.validationStatus}`);
         submitButtonNode.disabled = true;
         break;
       }
       case 'valid': {
-        inputNode.className = ['form-control', 'is-valid'].join(' ');
+        inputNode.classList.add('is-valid');
+        inputNode.classList.remove('is-invalid');
         submitButtonNode.disabled = false;
         break;
       }
       case 'exists': {
-        inputNode.className = ['form-control', 'is-invalid'].join(' ');
+        inputNode.classList.add('is-invalid');
         feedbackNode.innerText = t(`validationMessage.${state.validationStatus}`);
         submitButtonNode.disabled = true;
         break;
       }
       default: {
-        inputNode.className = 'form-control';
+        inputNode.classList.remove('in-valid', 'is-invalid');
         submitButtonNode.disabled = true;
       }
     }
