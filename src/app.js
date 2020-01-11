@@ -46,14 +46,16 @@ const app = async () => {
     state.validationStatus = validateRss(target.value, state);
   });
 
-  formNode.addEventListener('submit', (event) => {
+  formNode.addEventListener('submit', async (event) => {
     event.preventDefault();
     state.submitStatus = 'loading';
 
     const url = event.target.rss.value;
     const target = ['https://cors-anywhere.herokuapp.com', url].join('/');
 
-    get(target).then(({ data }) => {
+    try {
+      const { data } = await get(target);
+
       const { title, description, posts } = parseRss(data);
 
       state.feeds = { ...state.feeds, [url]: { title, description } };
@@ -63,10 +65,11 @@ const app = async () => {
       state.validationStatus = 'empty';
 
       checkFeedUpdates(target);
-    }).catch((err) => {
+    } catch (err) {
       state.submitStatus = 'failure';
       state.submitMessage = err;
-    });
+      throw new Error(err);
+    }
   });
 
   $('.info-modal').on('show.bs.modal', ({ relatedTarget }) => {
