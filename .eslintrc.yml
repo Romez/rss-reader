@@ -1,4 +1,6 @@
 plugins:
+  - react
+  - react-hooks
   - jest
   - babel
 
@@ -6,8 +8,18 @@ parser: 'babel-eslint'
 
 extends:
   - 'airbnb-base'
+  - 'plugin:jest/recommended'
+  - 'plugin:react/recommended'
 
 env:
   browser: true
   node: true
   jest: true
+
+settings:
+  import/resolver:
+    node:
+    webpack:
+
+rules:
+  react/prop-types: 0

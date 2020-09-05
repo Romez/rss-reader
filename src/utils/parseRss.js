@@ -8,7 +8,7 @@ const parseRss = (data) => {
   return {
     title: feedTitleEl.textContent,
     description: feedDescriptionEl.textContent,
-    posts: Array.from(doc.querySelectorAll('item')).map((item) => {
+    items: Array.from(doc.querySelectorAll('item')).map((item) => {
       const titleEl = item.querySelector('title');
       const linkEl = item.querySelector('link');
       const descriptionEl = item.querySelector('description');

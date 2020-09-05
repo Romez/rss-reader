@@ -1,7 +1,7 @@
 install:
 	npm ci
 
-run:
+start:
 	npx webpack-dev-server
 
 lint:

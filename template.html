@@ -3,48 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>RSS laoder</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css">
+  <title>RSS loader</title>
 </head>
 <body>
-  <div class="alerts"></div>
+  <!-- <div class="alerts"></div> -->
 
   <main class="container-fluid">
-    <div class="jumbotron">
-      <form class="rss-form" novalidate>
-        <div class="input-group">
-          <input type="text" class="form-control" name="rss" placeholder="RSS stream" autofocus required>
-          <div class="input-group-append">
-            <button type="submit" class="rss-submit btn btn-primary" disabled>
-              ADD
-            </button>
-          </div>
-          <div class="feedback invalid-feedback"></div>
-        </div>
-      </form>
-    </div>
-
-    <div class="row">
-    <div class="col-sm">
-      <div class="feeds list-group"></div>
-    </div>
-    <div class="col-sm">
-      <div class="posts list-group"></div>
-    </div>
-
-    <div class="modal fade info-modal" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Description</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body"></div>
-        </div>
-      </div>
-    </div>
-
+    <div id="app"></div>
   </main>
 </div>
 </body>

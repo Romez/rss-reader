@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import 'regenerator-runtime/runtime';
 
 import { parseRss } from '../src/utils';
 
@@ -9,7 +10,7 @@ test('shoud parse rss', async () => {
   const expected = {
     title: 'Feed title',
     description: 'Feed description',
-    posts: [
+    items: [
       {
         title: 'Title 2',
         link: 'http://example.com/2',
