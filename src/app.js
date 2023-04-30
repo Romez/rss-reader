@@ -22,7 +22,7 @@ const app = async () => {
   const checkFeedUpdates = (target) => {
     setTimeout(() => {
       get(target).then(({ data }) => {
-        const { posts } = parseRss(data);
+        const { posts } = parseRss(data.contents);
 
         const diffPosts = differenceBy(posts, state.posts, 'date')
           .map((post) => ({ ...post, id: uniqueId() }));
@@ -46,17 +46,26 @@ const app = async () => {
     state.validationStatus = validateRss(target.value, state);
   });
 
+  // https://ru.hexlet.io/lessons.rss
+
+  const buildUrl = (rssUrl) => {
+    const urlWithProxy = new URL('/get', 'https://allorigins.hexlet.app/get?url=https:%2F%2Fru.hexlet.io%2Flessons.rss');
+    urlWithProxy.searchParams.set('url', rssUrl);
+    urlWithProxy.searchParams.set('disableCache', 'true');
+    return urlWithProxy.toString();
+  };
+
   formNode.addEventListener('submit', async (event) => {
     event.preventDefault();
     state.submitStatus = 'loading';
 
     const url = event.target.rss.value;
-    const target = ['https://cors-anywhere.herokuapp.com', url].join('/');
+    const target = buildUrl(url);
 
     try {
       const { data } = await get(target);
 
-      const { title, description, posts } = parseRss(data);
+      const { title, description, posts } = parseRss(data.contents);
 
       state.feeds = { ...state.feeds, [url]: { title, description } };
       state.posts = state.posts.concat(posts.map((post) => ({ ...post, id: uniqueId() })));
